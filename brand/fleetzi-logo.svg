@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 380" role="img" aria-labelledby="title desc">
+<title id="title">Fleetzi — Manage Smarter</title>
+<desc id="desc">Fleetzi wordmark with location-mark icon in blue and charcoal.</desc>
+<rect width="1320" height="380" fill="#ffffff"/>
+<path d="M35 168 C55 92 86 40 159 28 C208 20 285 23 340 23 C329 49 317 66 294 75 C281 80 266 82 250 82 L155 82 C116 82 87 98 67 128 Z" fill="#191E24"/>
+<path d="M28 229 C54 190 87 160 124 139 C144 128 165 123 187 123 H293 C279 151 261 169 236 176 C224 179 211 181 197 181 H126 C89 181 61 196 41 225 Z" fill="#296AAE"/>
+<path d="M26 229 C42 211 60 196 80 184 C100 172 122 166 146 166 H210 C196 188 177 202 154 207 C142 210 129 211 116 211 H94 C70 211 51 220 38 237 Z" fill="#296AAE"/>
+<path d="M112 205 C82 205 58 229 58 259 C58 300 112 355 112 355 C112 355 166 300 166 259 C166 229 142 205 112 205 Z" fill="#296AAE"/>
+<circle cx="112" cy="259" r="23" fill="#ffffff"/>
+<text x="360" y="223" fill="#191E24" font-family="Arial, Helvetica, sans-serif" font-size="160" font-weight="800" letter-spacing="-7">Fleetzi</text>
+<circle cx="1252" cy="86" r="28" fill="#296AAE"/>
+<line x1="365" y1="294" x2="470" y2="294" stroke="#296AAE" stroke-width="7" stroke-linecap="round"/>
+<text x="500" y="309" fill="#66717D" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="500" letter-spacing="14">MANAGE SMARTER</text>
+<line x1="1168" y1="294" x2="1270" y2="294" stroke="#296AAE" stroke-width="7" stroke-linecap="round"/>
+</svg>
