@@ -1,0 +1,82 @@
+const SIM_KEY='fleetzi-realtime-sim-v2';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const fmt=n=>Number.isFinite(Number(n))?Number(n).toFixed(1):'—';
+const params=new URLSearchParams(location.search);
+let currentState=read();
+let fleetQuery=params.get('q')||'';
+let fleetFilterState={status:params.get('status')||'all',site:params.get('site')||'all',customer:params.get('customer')||'all',type:params.get('type')||'all'};
+
+function read(){try{return JSON.parse(localStorage.getItem(SIM_KEY))||null}catch{return null}}
+function statusLabel(s){return s==='dark'?'Offline':String(s||'unknown').replace(/^./,c=>c.toUpperCase())}
+function machineHref(m,view='overview'){return `./machine.html?id=${encodeURIComponent(m.id)}&view=${encodeURIComponent(view)}`}
+function openLink(m,label,view='overview'){return `<a class="ops-link primary" href="${machineHref(m,view)}">${label}</a>`}
+function unique(ms,key){return [...new Set(ms.map(m=>m[key]).filter(Boolean))].sort()}
+function option(value,label,current){return `<option value="${esc(value)}" ${String(current)===String(value)?'selected':''}>${esc(label)}</option>`}
+function noState(){const host=$('#ops-content');if(host)host.innerHTML='<div class="ops-empty"><h2>Fleet data unavailable</h2><p>Return to Overview and try again.</p><a class="ops-link primary" href="./demo.html">Return to Overview</a></div>'}
+function machineText(m){return [m.asset,m.type,m.model,m.serial,m.year,m.site,m.customer,m.attachment,m.status].join(' ').toLowerCase()}
+function table(headers,rows,empty='No records match this view.'){return `<div class="ops-card"><div class="ops-table-wrap"><table class="ops-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.join(''):`<tr><td colspan="${headers.length}">${esc(empty)}</td></tr>`}</tbody></table></div></div>`}
+function machineScope(s){const id=params.get('machine');return id?s.machines.filter(m=>m.id===id):s.machines}
+function toolbar(body){return `<div class="ops-card ops-filter-card"><div class="ops-toolbar">${body}</div></div>`}
+function openAlerts(m){return (m.alerts||[]).filter(a=>!a.ack&&!a.resolved)}
+function latestFuel(m){return Number(m.sensor?.at(-1)?.fuel??m.fuel??0)}
+function sevenDayFuel(m){return (m.history||[]).reduce((n,d)=>n+Number(d.fuelUsed||0),0)}
+function utilisation(m){const d=m.history?.at(-1)||{};return Math.max(0,Math.min(100,Math.round((Number(d.working)||0)/8*100)))}
+function syncFleetUrl(){const next=new URLSearchParams();if(fleetQuery.trim())next.set('q',fleetQuery.trim());for(const [key,value] of Object.entries(fleetFilterState))if(value&&value!=='all')next.set(key,value);const query=next.toString();history.replaceState(null,'',`${location.pathname}${query?`?${query}`:''}`)}
+
+function renderFleet(s){
+  const input=$('#fleet-page-search'),host=$('#ops-content');if(!input||!host)return;
+  if(document.activeElement!==input&&input.value!==fleetQuery)input.value=fleetQuery;
+  const existing={status:$('#fleet-status-filter')?.value||fleetFilterState.status,site:$('#fleet-site-filter')?.value||fleetFilterState.site,customer:$('#fleet-customer-filter')?.value||fleetFilterState.customer,type:$('#fleet-type-filter')?.value||fleetFilterState.type};
+  fleetFilterState=existing;
+  const q=input.value.trim().toLowerCase();let ms=s.machines.filter(m=>!q||machineText(m).includes(q));
+  if(existing.status==='active')ms=ms.filter(m=>['running','moving'].includes(m.status));else if(existing.status!=='all')ms=ms.filter(m=>m.status===existing.status);
+  if(existing.site!=='all')ms=ms.filter(m=>m.site===existing.site);if(existing.customer!=='all')ms=ms.filter(m=>m.customer===existing.customer);if(existing.type!=='all')ms=ms.filter(m=>m.type===existing.type);
+  const count=$('#fleet-result-count');if(count)count.textContent=`${ms.length} of ${s.machines.length} machines`;
+  host.innerHTML=`${toolbar(`<label>Status<select id="fleet-status-filter">${option('all','All statuses',existing.status)}${option('active','Active / moving',existing.status)}${unique(s.machines,'status').map(v=>option(v,statusLabel(v),existing.status)).join('')}</select></label><label>Site<select id="fleet-site-filter">${option('all','All sites',existing.site)}${unique(s.machines,'site').map(v=>option(v,v,existing.site)).join('')}</select></label><label>Customer<select id="fleet-customer-filter">${option('all','All customers',existing.customer)}${unique(s.machines,'customer').map(v=>option(v,v,existing.customer)).join('')}</select></label><label>Type<select id="fleet-type-filter">${option('all','All machine types',existing.type)}${unique(s.machines,'type').map(v=>option(v,v,existing.type)).join('')}</select></label><button id="fleet-clear-filters" class="ops-button" type="button">Clear filters</button>`)}`+table(['Machine','Type','Status','Site / customer','Meter','Fuel','Open alerts','Action'],ms.map(m=>`<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)} · ${esc(m.serial)}</small></td><td>${esc(m.type)}</td><td><span class="ops-status"><i class="ops-dot ${esc(m.status)}"></i>${esc(statusLabel(m.status))}</span><small>${esc(m.phase||'')}</small></td><td>${esc(m.site)}<small>${esc(m.customer)}</small></td><td>${fmt(m.meter)} h</td><td>${Math.round(latestFuel(m))}%</td><td>${openAlerts(m).length}</td><td>${openLink(m,'Open machine')}</td></tr>`),'No machines match the current search and filters. Try Clear filters or open Live Map to locate machines by site.');
+  ['status','site','customer','type'].forEach(k=>$('#fleet-'+k+'-filter')?.addEventListener('change',e=>{fleetFilterState[k]=e.currentTarget.value;syncFleetUrl();renderFleet(s)}));
+  $('#fleet-clear-filters')?.addEventListener('click',()=>{fleetQuery='';fleetFilterState={status:'all',site:'all',customer:'all',type:'all'};input.value='';syncFleetUrl();renderFleet(s)});
+}
+
+function renderAlerts(s){
+  const status=params.get('status')||'open';let rows=machineScope(s).flatMap(m=>(m.alerts||[]).map(a=>({m,a})));
+  if(status==='open')rows=rows.filter(x=>!x.a.ack&&!x.a.resolved);if(status==='acknowledged')rows=rows.filter(x=>x.a.ack&&!x.a.resolved);if(status==='resolved')rows=rows.filter(x=>x.a.resolved);
+  rows.sort((x,y)=>(x.a.resolved-y.a.resolved)||(x.a.ack-y.a.ack)||(x.a.severity==='high'?-1:1));
+  const counts={open:0,ack:0,resolved:0};machineScope(s).forEach(m=>(m.alerts||[]).forEach(a=>{if(a.resolved)counts.resolved++;else if(a.ack)counts.ack++;else counts.open++}));
+  $('#ops-content').innerHTML=`${toolbar(`<a class="ops-link ${status==='open'?'primary':''}" href="./alerts.html?status=open">Open ${counts.open}</a><a class="ops-link ${status==='acknowledged'?'primary':''}" href="./alerts.html?status=acknowledged">Acknowledged ${counts.ack}</a><a class="ops-link ${status==='resolved'?'primary':''}" href="./alerts.html?status=resolved">Resolved ${counts.resolved}</a><a class="ops-link ${status==='all'?'primary':''}" href="./alerts.html?status=all">All</a>`)}`+table(['Machine','Alert','Severity','Time','Status','Action'],rows.map(({m,a})=>`<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)} · ${esc(m.site)}</small></td><td>${esc(a.text)}</td><td class="ops-alert-${esc(a.severity)}">${esc(a.severity)}</td><td>${esc(a.time)}</td><td>${a.resolved?'Resolved':a.ack?'Acknowledged':'Open'}${a.assignedTo?`<small>Assigned: ${esc(a.assignedTo)}</small>`:''}</td><td>${openLink(m,'Investigate','alerts')}</td></tr>`),'No alerts match this status. Filters are in the toolbar above — try Open or use Fleet to locate the machine.');
+}
+
+function renderMaintenance(s){
+  const ms=machineScope(s).slice().sort((a,b)=>(a.nextService-a.meter)-(b.nextService-b.meter));const due=ms.filter(m=>m.nextService-m.meter<=0).length,soon=ms.filter(m=>m.nextService-m.meter>0&&m.nextService-m.meter<=50).length,scheduled=ms.reduce((n,m)=>n+(m.maintenance||[]).filter(x=>x.status==='Scheduled').length,0);
+  $('#ops-content').innerHTML=`<div class="ops-grid"><div class="ops-stat"><span>Overdue</span><strong>${due}</strong></div><div class="ops-stat"><span>Due within 50 h</span><strong>${soon}</strong></div><div class="ops-stat"><span>Open work orders</span><strong>${scheduled}</strong></div></div>`+table(['Machine','Current meter','Next service','Remaining','Last service','Latest work / order','Action'],ms.map(m=>{const r=m.nextService-m.meter,last=m.maintenance?.[0];return `<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)} · ${esc(m.site)}</small></td><td>${fmt(m.meter)} h</td><td>${fmt(m.nextService)} h</td><td class="${r<=0?'ops-alert-high':r<=50?'ops-alert-medium':''}">${r<=0?`${Math.abs(Math.round(r))} h overdue`:`${Math.round(r)} h`}</td><td>${esc(m.lastService)}</td><td>${last?`${esc(last.work)}<small>${esc(last.status)}</small>`:'—'}</td><td>${openLink(m,'Maintenance record','maintenance')}</td></tr>`}));
+}
+
+function renderUtilisation(s){
+  const rows=machineScope(s).map(m=>{const d=m.history?.at(-1)||{},util=utilisation(m);return{m,d,util}}).sort((a,b)=>b.util-a.util),avg=Math.round(rows.reduce((n,x)=>n+x.util,0)/(rows.length||1));
+  $('#ops-content').innerHTML=`<div class="ops-grid"><div class="ops-stat"><span>Fleet utilisation</span><strong>${avg}%</strong></div><div class="ops-stat"><span>Working now</span><strong>${rows.filter(x=>['running','moving'].includes(x.m.status)).length}</strong></div><div class="ops-stat"><span>Idle now</span><strong>${rows.filter(x=>x.m.status==='idle').length}</strong></div></div>`+table(['Machine','Site','Working','Idle','Utilisation','Action'],rows.map(({m,d,util})=>`<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)}</small></td><td>${esc(m.site)}</td><td>${fmt(d.working)} h</td><td>${fmt(d.idle)} h</td><td><b>${util}%</b><div class="ops-util-bar"><div class="ops-util-fill" style="width:${util}%"></div></div></td><td>${openLink(m,'Open history','history')}</td></tr>`));
+}
+
+function renderFuel(s){
+  const ms=machineScope(s),low=ms.filter(m=>latestFuel(m)<20).length,avg=Math.round(ms.reduce((n,m)=>n+latestFuel(m),0)/(ms.length||1)),used=ms.reduce((n,m)=>n+sevenDayFuel(m),0);
+  $('#ops-content').innerHTML=`<div class="ops-grid"><div class="ops-stat"><span>Average fuel level</span><strong>${avg}%</strong></div><div class="ops-stat"><span>Low fuel</span><strong>${low}</strong></div><div class="ops-stat"><span>7-day fuel use</span><strong>${Math.round(used)} L</strong></div></div>`+table(['Machine','Current level','7-day use','Today run','Today idle','Site','Action'],ms.slice().sort((a,b)=>latestFuel(a)-latestFuel(b)).map(m=>{const d=m.history?.at(-1)||{};return `<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)}</small></td><td class="${latestFuel(m)<20?'ops-alert-high':''}"><b>${Math.round(latestFuel(m))}%</b></td><td>${fmt(sevenDayFuel(m))} L</td><td>${fmt(d.run)} h</td><td>${fmt(d.idle)} h</td><td>${esc(m.site)}</td><td>${openLink(m,'Fuel history','fuel')}</td></tr>`}));
+}
+
+function inspectionState(m){const hasPrestart=(m.events||[]).some(x=>x.type==='prestart'),faults=(m.faultCodes||[]).length,critical=openAlerts(m).some(a=>a.severity==='high');if(!hasPrestart)return{label:'Not recorded',className:'ops-alert-medium'};if(faults||critical)return{label:'Follow-up required',className:'ops-alert-high'};return{label:'Completed',className:''}}
+function renderInspections(s){
+  const ms=machineScope(s),states=ms.map(m=>({m,state:inspectionState(m)})),complete=states.filter(x=>x.state.label==='Completed').length,follow=states.filter(x=>x.state.label==='Follow-up required').length,missing=states.filter(x=>x.state.label==='Not recorded').length;
+  $('#ops-content').innerHTML=`<div class="ops-grid"><div class="ops-stat"><span>Pre-start recorded</span><strong>${complete+follow}</strong></div><div class="ops-stat"><span>Follow-up required</span><strong>${follow}</strong></div><div class="ops-stat"><span>Not recorded</span><strong>${missing}</strong></div></div><div class="ops-card"><p class="ops-note">Inspection status reflects recorded pre-start checks, current faults and open alerts. Formal inspection records remain subject to the organisation’s operating and compliance procedures.</p></div>`+table(['Machine','Inspection','Faults','Open alerts','Site','Action'],states.map(({m,state})=>`<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)}</small></td><td class="${state.className}"><b>${state.label}</b><small>Latest pre-start</small></td><td>${(m.faultCodes||[]).length}</td><td>${openAlerts(m).length}</td><td>${esc(m.site)}</td><td>${openLink(m,'Machine timeline','timeline')}</td></tr>`));
+}
+
+function renderReports(s){
+  const ms=machineScope(s),active=ms.filter(m=>['running','moving'].includes(m.status)).length,idle=ms.filter(m=>m.status==='idle').length,offline=ms.filter(m=>m.status==='dark').length,util=Math.round(ms.reduce((n,m)=>n+utilisation(m),0)/(ms.length||1)),fuel=ms.reduce((n,m)=>n+sevenDayFuel(m),0),overdue=ms.filter(m=>m.nextService-m.meter<=0).length,alerts=ms.reduce((n,m)=>n+openAlerts(m).length,0);
+  const cards=[['Fleet status',`${active} active · ${idle} idle · ${offline} offline`,'./fleet.html'],['Utilisation',`${util}% fleet utilisation`,'./utilisation.html'],['Fuel',`${Math.round(fuel)} L · 7-day use`,'./fuel.html'],['Maintenance',`${overdue} overdue`,'./maintenance.html'],['Alerts',`${alerts} open exceptions`,'./alerts.html?status=open'],['Inspections',`${ms.filter(m=>(m.events||[]).some(x=>x.type==='prestart')).length}/${ms.length} pre-starts recorded`,'./inspections.html']];
+  $('#ops-content').innerHTML=`<div class="ops-grid ops-report-grid">${cards.map(([title,value,href])=>`<a class="ops-card ops-report-card" href="${href}"><span>${esc(title)}</span><strong>${esc(value)}</strong><small>Open report →</small></a>`).join('')}</div>`+table(['Machine','Status','Utilisation','Fuel','Service','Alerts'],ms.map(m=>{const r=m.nextService-m.meter;return `<tr><td><a href="${machineHref(m)}"><b>${esc(m.asset)}</b><small>${esc(m.model)}</small></a></td><td>${esc(statusLabel(m.status))}</td><td>${utilisation(m)}%</td><td>${Math.round(latestFuel(m))}%</td><td>${r<=0?`${Math.abs(Math.round(r))} h overdue`:`${Math.round(r)} h remaining`}</td><td>${openAlerts(m).length}</td></tr>`}));
+}
+
+function renderHire(s){
+  const ms=machineScope(s),review=ms.filter(m=>m.hire?.[0]?.status!=='Approved').length,total=ms.reduce((n,m)=>{const h=m.hire?.[0]||{},p=h.proposed??Math.max(h.minimum||0,h.measured||0);return n+p*Number(m.rate||0)},0);
+  $('#ops-content').innerHTML=`<div class="ops-grid"><div class="ops-stat"><span>Records needing review</span><strong>${review}</strong></div><div class="ops-stat"><span>Proposed value</span><strong>R${Math.round(total).toLocaleString('en-ZA')}</strong></div><div class="ops-stat"><span>Machines on hire</span><strong>${ms.filter(m=>m.customer).length}</strong></div></div>`+table(['Machine','Customer / site','Measured','Minimum','Proposed','Rate','Status','Action'],ms.map(m=>{const h=m.hire?.[0]||{},proposed=h.proposed??Math.max(h.minimum||0,h.measured||0);return `<tr><td><b>${esc(m.asset)}</b><small>${esc(m.model)}</small></td><td>${esc(m.customer)}<small>${esc(m.site)}</small></td><td>${fmt(h.measured)} h</td><td>${fmt(h.minimum)} h</td><td><b>${fmt(proposed)} h</b></td><td>R${Number(m.rate||0).toLocaleString('en-ZA')}/h</td><td>${esc(h.status||'Needs review')}</td><td>${openLink(m,'Review machine','hire')}</td></tr>`}));
+}
+
+function renderCurrent(){currentState=read();if(!currentState?.machines){noState();return}const page=document.body.dataset.opsPage;if(page==='fleet')renderFleet(currentState);else if(page==='alerts')renderAlerts(currentState);else if(page==='maintenance')renderMaintenance(currentState);else if(page==='utilisation')renderUtilisation(currentState);else if(page==='fuel')renderFuel(currentState);else if(page==='inspections')renderInspections(currentState);else if(page==='reports')renderReports(currentState);else if(page==='hire')renderHire(currentState)}
+const search=$('#fleet-page-search');search?.addEventListener('input',e=>{fleetQuery=e.currentTarget.value;syncFleetUrl();renderFleet(currentState)});renderCurrent();window.addEventListener('storage',e=>{if(e.key===SIM_KEY)renderCurrent()});setInterval(()=>{if(document.visibilityState==='visible')renderCurrent()},2000);

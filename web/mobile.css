@@ -1,0 +1,225 @@
+/* Fleetzi responsive system — scoped marketing + product UX */
+html{max-width:100%;overflow-x:clip;-webkit-text-size-adjust:100%}
+body{max-width:100%;overflow-x:clip}
+img,video,svg{max-width:100%}
+.ops-table-wrap,.sim-table-wrap,.mw-tabs,.journey-ribbon,#equipment-list{scrollbar-width:thin;overscroll-behavior-inline:contain}
+
+/* Desktop product rails: fixed viewport navigation, document scroll belongs to content. */
+@media(min-width:1181px){
+  .dash-shell{display:block!important;min-height:100dvh}
+  .dash-side{position:fixed!important;inset:0 auto 0 0!important;width:220px;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overscroll-behavior:contain;z-index:1000}
+  .dash-main{margin-left:220px!important;min-height:100dvh;width:calc(100% - 220px)}
+}
+@media(min-width:901px){
+  .product-shell{display:block!important;min-height:100dvh}
+  .product-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:220px;height:100dvh!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain;z-index:1000}
+  .product-content{margin-left:220px!important;min-height:100dvh;width:calc(100% - 220px)}
+}
+
+/* Marketing/public surfaces */
+@media(max-width:900px){
+  .nav-wrap{padding:18px 5%;flex-wrap:wrap}
+  .menu-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid #657177;border-radius:4px;background:transparent;color:#fff;font-weight:700}
+  .header nav{display:none;width:100%;align-items:stretch;gap:0;padding-top:8px}
+  .header nav.open,.header nav[data-open="true"]{display:grid}
+  .header nav>a:not(.button){padding:14px 2px;border-top:1px solid #3c4447}
+  .header nav .button{margin-top:10px;width:100%}
+  .hero{grid-template-columns:1fr;min-height:0}
+  .hero-copy{padding:52px 6% 44px}
+  .hero-image{min-height:360px}
+  .hero-image img{object-position:60% 50%}
+  .mechanism,.hours-section,.split-note,.installation-prep,.faq,.planner{grid-template-columns:1fr;gap:40px}
+  .story-heading{display:grid;gap:16px}
+  .journey-preview,.feature-rows article{grid-template-columns:1fr}
+  .install-steps article{grid-template-columns:54px minmax(0,1fr);gap:18px}
+  .install-steps .responsibility{grid-column:2;width:max-content;max-width:100%}
+}
+@media(max-width:700px){
+  .header:not(.dash-topbar):not(.product-topbar)~main h1,.hero h1,.page-intro h1{font-size:clamp(44px,12vw,62px)}
+  .section h2,.product-story h2,.page-intro h2{font-size:clamp(32px,9vw,46px)}
+  .section{padding:58px 6%}
+  .page-intro{padding:48px 6% 40px}
+  .hero-copy{padding:42px 6% 38px}
+  .hero-copy>p,.page-intro p{font-size:17px}
+  .hero .actions{align-items:stretch;gap:14px}
+  .hero .actions .button{width:100%}
+  .hero-image{min-height:290px}
+  .industry-strip{justify-content:flex-start;padding:21px 6%;gap:12px 18px}
+  .industry-strip span{flex-basis:100%}
+  .journey-ribbon{overflow-x:auto;justify-content:flex-start;gap:24px;padding-bottom:8px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  .journey-ribbon span{flex:0 0 auto;scroll-snap-align:start}
+  .cta-band{display:grid;padding:44px 6%;gap:18px}
+  .cta-band>div{text-align:left;width:100%}
+  .cta-band .button{width:100%}
+  .footer{padding:42px 6% max(24px,env(safe-area-inset-bottom))}
+  .footer-top,.footer-bottom{display:grid;gap:22px}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .wide{grid-column:auto}
+}
+
+/* Dashboard shell — tablet/mobile */
+@media(max-width:1180px){
+  .dash-shell{display:block!important;min-height:100dvh}
+  .dash-main{margin-left:0!important;width:100%!important;min-width:0}
+  .dash-side{position:fixed!important;inset:0 auto 0 0!important;width:min(84vw,300px)!important;height:100dvh!important;max-height:100dvh!important;padding:18px 14px max(22px,env(safe-area-inset-bottom))!important;transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto!important;overscroll-behavior:contain;z-index:1400!important;box-shadow:none!important}
+  .dash-side.open{transform:translateX(0);box-shadow:0 0 0 100vmax rgba(8,12,14,.52)!important}
+  .dash-nav{overflow:visible!important}
+  .dash-menu{display:inline-flex!important;align-items:center;justify-content:center;min-width:46px;min-height:44px;padding:0 12px;border-radius:9px}
+  .dash-topbar{height:auto!important;min-height:64px;padding:9px max(12px,env(safe-area-inset-right)) 9px max(12px,env(safe-area-inset-left))!important;gap:9px;position:sticky;top:0}
+  .dash-search{max-width:none;min-width:0;flex:1}
+  .dash-search input{height:44px;font-size:16px;border-radius:9px}
+  .dash-top-actions{display:none!important}
+  .dash-content{padding:14px 12px max(30px,env(safe-area-inset-bottom))!important}
+  .dash-page-head{align-items:flex-start!important;gap:12px;margin-bottom:12px}
+  .dash-page-head h1{font-size:27px!important;line-height:1.08!important}
+  .dash-page-head p{font-size:12px;line-height:1.45;max-width:58ch}
+  .dash-page-actions{width:auto}
+  .dash-page-actions a{min-height:40px}
+  .dash-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px}
+  .dash-kpi{min-height:76px;padding:10px;border-radius:9px}
+  .dash-kpi strong{font-size:21px}
+  .dash-priority-grid,.dash-operations-grid{grid-template-columns:1fr!important;gap:10px}
+  .dash-card{border-radius:10px}
+  .dash-card-head{padding:11px 12px;min-height:50px}
+  .dash-card-head h2,.dash-card-head h3{font-size:14px!important;line-height:1.2!important}
+  .dash-card-head p{font-size:10px;line-height:1.35}
+  .dash-map-card{order:0}
+  .dash-card .sim-map,.dash-card .maplibre-fleet-map{height:clamp(380px,62dvh,620px)!important;min-height:380px}
+  .dash-alerts{order:1;min-height:0!important;max-height:none}
+  .dash-alerts #dashboard-alerts-slot{max-height:360px;overflow:auto}
+  .dash-operations-grid{margin-top:10px}
+  .status-wrap{flex-wrap:wrap}
+  .dash-commercial{grid-template-columns:1fr!important}
+}
+
+@media(max-width:720px){
+  .dash-content{padding-inline:10px!important}
+  .dash-page-head{flex-direction:column!important}
+  .dash-page-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .dash-page-actions a{justify-content:center;text-align:center}
+  .dash-banner{margin-bottom:9px;padding:8px 9px}
+  .dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .dash-kpi{min-height:80px}
+  .dash-card .sim-map,.dash-card .maplibre-fleet-map{height:54dvh!important;min-height:330px;max-height:520px}
+  .dash-map-legend{gap:9px;padding:8px 9px}
+  .dash-map-legend small{flex-basis:100%;margin-left:0}
+  .maint-two{grid-template-columns:1fr!important}
+  .dash-fleet .sim-table-wrap{max-height:none;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .dash-fleet .sim-table{min-width:720px}
+  .dash-fleet .sim-table th,.dash-fleet .sim-table td{display:table-cell!important;white-space:nowrap}
+  .dash-fleet .sim-table th:first-child,.dash-fleet .sim-table td:first-child{position:sticky;left:0;background:#fff;z-index:2}
+  .dash-fleet .sim-table th:last-child,.dash-fleet .sim-table td:last-child{position:sticky;right:0;background:#fff;z-index:3;box-shadow:-8px 0 12px rgba(0,0,0,.06);border-left:1px solid #dfe4e1}
+}
+
+@media(max-width:430px){
+  .dash-topbar{padding-inline:8px!important}
+  .dash-search input{padding-left:34px;padding-right:8px}
+  .dash-content{padding-inline:8px!important}
+  .dash-page-head h1{font-size:25px!important}
+  .dash-kpis{gap:6px}
+  .dash-kpi{padding:9px;min-height:76px}
+  .dash-kpi strong{font-size:20px}
+  .dash-kpi small{font-size:8px}
+  .dash-card{border-radius:9px}
+  .dash-card .sim-map,.dash-card .maplibre-fleet-map{height:52dvh!important;min-height:300px}
+}
+
+/* Operations/product shell — tablet/mobile */
+@media(max-width:900px){
+  .product-shell{display:block!important;min-height:100dvh}
+  .product-content{margin-left:0!important;width:100%!important;min-width:0}
+  .product-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:min(84vw,300px)!important;height:100dvh!important;max-height:100dvh!important;padding-bottom:max(22px,env(safe-area-inset-bottom))!important;transform:translateX(-105%);transition:transform .2s ease;overflow-y:auto!important;z-index:1400!important;box-shadow:none!important}
+  .product-sidebar.open{transform:translateX(0);box-shadow:0 0 0 100vmax rgba(8,12,14,.52)!important}
+  .product-menu-button{display:inline-flex!important;align-items:center;justify-content:center;min-width:46px;min-height:44px;border-radius:9px}
+  .product-topbar{height:auto!important;min-height:64px;padding:9px max(12px,env(safe-area-inset-right)) 9px max(12px,env(safe-area-inset-left))!important;gap:9px;flex-wrap:wrap}
+  .product-workspace-title{flex:1;min-width:0}
+  .product-workspace-title small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .product-global-search-wrap{order:3;width:100%;flex-basis:100%}
+  .product-global-search{max-width:none!important;width:100%}
+  .product-global-search input{min-height:46px;font-size:16px;border-radius:9px}
+  .product-top-link{display:none!important}
+  .product-content>.ops-shell{padding:14px 12px max(32px,env(safe-area-inset-bottom))!important}
+  .product-content .ops-heading{align-items:flex-start;margin:4px 0 14px!important}
+  .product-content .ops-heading h1{font-size:28px!important;line-height:1.08!important}
+  .product-content .ops-heading p{font-size:13px;line-height:1.45}
+  .ops-grid,.ops-report-grid,.ops-detail-grid,.mw-live-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .ops-card,.ops-stat{border-radius:9px;overflow:hidden}
+  .ops-card-head{align-items:flex-start;padding:12px}
+  .ops-toolbar{align-items:stretch!important;gap:10px}
+  .ops-toolbar label{display:grid!important;grid-template-columns:1fr;gap:5px!important;min-width:min(100%,180px);flex:1}
+  .ops-toolbar select,.ops-toolbar input{width:100%;max-width:none!important;min-height:44px;font-size:16px}
+  .ops-map,.maplibre-fleet-map{height:clamp(380px,60dvh,600px)!important;min-height:340px}
+  .ops-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ops-table{min-width:720px}
+  .ops-table th,.ops-table td{display:table-cell!important;white-space:nowrap}
+  .ops-table th:first-child,.ops-table td:first-child{position:sticky;left:0;background:#fff;z-index:2}
+  .ops-table th:last-child,.ops-table td:last-child{position:sticky;right:0;background:#fff;z-index:3;box-shadow:-8px 0 12px rgba(0,0,0,.06);border-left:1px solid #dfe4e1}
+  .ops-actions a,.ops-actions button,.ops-link,.ops-button{min-height:40px;display:inline-flex;align-items:center}
+}
+
+@media(max-width:620px){
+  .product-topbar{padding-inline:9px!important}
+  .product-workspace-title small{display:none}
+  .product-content>.ops-shell{padding-inline:9px!important}
+  .product-content .ops-heading{display:block}
+  .product-content .ops-heading h1{font-size:26px!important}
+  .ops-grid,.ops-report-grid,.ops-detail-grid,.mw-live-grid{grid-template-columns:1fr!important}
+  .ops-stat strong{font-size:22px}
+  .ops-map,.maplibre-fleet-map{height:52dvh!important;min-height:310px;max-height:520px}
+  .map-live-summary{gap:8px}
+  .map-live-summary small{flex-basis:100%;margin-left:0}
+}
+
+/* Explicit Hardware & Setup mobile page */
+@media(max-width:900px){
+  .hardware-page .hardware-shell{padding:14px 12px max(32px,env(safe-area-inset-bottom))!important}
+  .hardware-page .hardware-page-head{display:grid!important;grid-template-columns:1fr!important;gap:14px!important}
+  .hardware-page .hardware-page-head h1{font-size:28px!important;line-height:1.08!important}
+  .hardware-page .hardware-primary{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .hardware-page .hardware-summary{grid-template-columns:1fr!important;gap:8px!important}
+  .hardware-page .hardware-workspace{grid-template-columns:1fr!important;gap:10px!important}
+  .hardware-page .hardware-panel,.hardware-page .hardware-path{border-radius:10px!important}
+  .hardware-page .hardware-path-row{grid-template-columns:1fr!important;gap:8px!important}
+  .hardware-page .hardware-path-row>i{transform:rotate(90deg);justify-self:center}
+}
+
+/* Touch and accessibility */
+@media(pointer:coarse){
+  .header nav>a,.menu-toggle,.button,.text-link,.equipment-item,.reset-button,summary,.product-menu-button,.product-nav a,.dash-menu,.dash-nav a,.dash-table-action,.ops-link,.ops-button,.ops-actions button{min-height:44px}
+}
+@media(prefers-reduced-motion:reduce){
+  .product-sidebar,.dash-side{transition:none!important}
+}
+
+/* Adapt: no finger slide for tables */
+
+@media(max-width:620px){
+  .ops-table-wrap{overflow:visible;max-width:100%}
+  .ops-table{min-width:0!important;width:100%}
+  .ops-table th,.ops-table td{white-space:normal!important;word-break:break-word}
+  /* Fleet table: hide Type (2), Meter (5), Fuel (6) to keep Machine/Status/Site/Action visible without scroll */
+  .ops-table th:nth-child(2),.ops-table td:nth-child(2),
+  .ops-table th:nth-child(5),.ops-table td:nth-child(5),
+  .ops-table th:nth-child(6),.ops-table td:nth-child(6){display:none!important}
+  .ops-table th:first-child,.ops-table td:first-child{position:static!important}
+  .ops-table th:last-child,.ops-table td:last-child{position:static!important;box-shadow:none!important;border-left:0!important}
+  .ops-card{overflow:visible}
+  .ops-toolbar{flex-direction:column}
+}
+@media(max-width:430px){
+  /* Also hide Site extra on very narrow, keep Machine/Status/Action */
+  .ops-table th:nth-child(4),.ops-table td:nth-child(4){max-width:140px;overflow:hidden;text-overflow:ellipsis}
+}
+
+/* dash-fleet no slide */
+
+@media(max-width:620px){
+  .dash-fleet .sim-table-wrap{overflow:visible;max-width:100%}
+  .dash-fleet .sim-table{min-width:0!important;width:100%}
+  .dash-fleet .sim-table th,.dash-fleet .sim-table td{white-space:normal!important}
+  .dash-fleet .sim-table th:nth-child(2),.dash-fleet .sim-table td:nth-child(2),
+  .dash-fleet .sim-table th:nth-child(5),.dash-fleet .sim-table td:nth-child(5),
+  .dash-fleet .sim-table th:nth-child(6),.dash-fleet .sim-table td:nth-child(6){display:none!important}
+  .dash-fleet .sim-table th:first-child,.dash-fleet .sim-table td:first-child{position:static!important}
+  .dash-fleet .sim-table th:last-child,.dash-fleet .sim-table td:last-child{position:static!important;box-shadow:none!important;border-left:0!important}
+}

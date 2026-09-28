@@ -1,0 +1,20 @@
+const SIM_KEY='fleetzi-realtime-sim-v2';
+const ACTION_KEY='fleetzi-realtime-actions-v2';
+function machineUrl(id,view='overview'){return `./machine.html?id=${encodeURIComponent(id)}&view=${encodeURIComponent(view)}`}
+function read(){try{return JSON.parse(localStorage.getItem(SIM_KEY))||null}catch{return null}}
+function save(s){localStorage.setItem(SIM_KEY,JSON.stringify(s))}
+function log(action,m,subject){let list=[];try{list=JSON.parse(localStorage.getItem(ACTION_KEY))||[]}catch{}list.unshift({time:new Date().toLocaleString('en-ZA'),action,machine:{id:m.id,asset:m.asset},subject,actor:'Demo operator'});localStorage.setItem(ACTION_KEY,JSON.stringify(list.slice(0,120)))}
+function alertByIds(s,mid,aid){const m=s?.machines?.find(x=>x.id===mid);return{m,a:m?.alerts?.find(x=>x.id===aid)}}
+const metricRoutes={'Active machines':'./fleet.html?status=active','On hire':'./hire.html','Utilisation':'./utilisation.html','Billable hours':'./hire.html','Revenue at risk':'./hire.html','Maintenance alerts':'./maintenance.html'};
+document.addEventListener('click',event=>{
+ const metric=event.target.closest('.dash-kpi');if(metric){const route=metricRoutes[metric.querySelector('span')?.textContent?.trim()];if(route){event.preventDefault();location.href=route;return}}
+ const rowAction=event.target.closest('.open-machine');if(rowAction){const row=rowAction.closest('tr[data-id]');if(row){event.preventDefault();event.stopImmediatePropagation();location.href=machineUrl(row.dataset.id)}return}
+ const searchResult=event.target.closest('[data-search-machine]');if(searchResult){event.preventDefault();event.stopImmediatePropagation();location.href=machineUrl(searchResult.dataset.searchMachine);return}
+ const investigate=event.target.closest('[data-investigate]');if(investigate){event.preventDefault();event.stopImmediatePropagation();location.href=machineUrl(investigate.dataset.investigate,'alerts');return}
+ const ack=event.target.closest('[data-ack]');if(ack){event.preventDefault();event.stopImmediatePropagation();const [mid,aid]=ack.dataset.ack.split('|'),s=read(),{m,a}=alertByIds(s,mid,aid);if(m&&a){a.ack=true;a.acknowledgedAt=new Date().toLocaleString('en-ZA');a.acknowledgedBy='Demo operator';if(m.exception)m.exception.ack=true;log('Acknowledge alert',m,a.text);save(s);location.href=machineUrl(mid,'alerts')}return}
+ const service=event.target.closest('[data-service]');if(service){event.preventDefault();event.stopImmediatePropagation();const mid=service.dataset.service,s=read(),m=s?.machines?.find(x=>x.id===mid);if(m){m.maintenance=m.maintenance||[];m.maintenance.unshift({date:new Date().toLocaleDateString('en-ZA'),work:'Service scheduled from dashboard',meter:Math.round(m.meter),status:'Scheduled'});log('Schedule service',m,'Maintenance work order');save(s);location.href=machineUrl(mid,'maintenance')}return}
+ const assign=event.target.closest('[data-assign]');if(assign){event.preventDefault();event.stopImmediatePropagation();const mid=assign.dataset.assign,s=read(),m=s?.machines?.find(x=>x.id===mid),a=m?.alerts?.find(x=>!x.ack&&!x.resolved);if(m){if(a){a.assignedTo='Operations';a.assignedAt=new Date().toLocaleString('en-ZA')}log('Assign exception',m,a?.text||'Operational exception');save(s);location.href=machineUrl(mid,'alerts')}return}
+},true);
+function markMetrics(){document.querySelectorAll('.dash-kpi').forEach(card=>{const label=card.querySelector('span')?.textContent?.trim();if(metricRoutes[label]){card.tabIndex=0;card.setAttribute('role','link');card.setAttribute('aria-label',`${label}: open details`)}})}
+setInterval(markMetrics,500);
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.dash-kpi[role="link"]')){e.preventDefault();const route=metricRoutes[e.target.querySelector('span')?.textContent?.trim()];if(route)location.href=route}});
