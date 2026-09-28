@@ -1,0 +1,14 @@
+{
+  "name": "fleetzi-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/serve-static.mjs",
+    "build": "node scripts/build-static.mjs",
+    "test": "node --test tests/fleetzi.test.mjs"
+  }
+}
